@@ -1,6 +1,6 @@
 ---
 name: threat-model-analyst
-description: 'Full STRIDE-A threat model analysis, incremental update, and TM7 file analysis skill. Supports three modes: (1) Single analysis — full STRIDE-A threat model of a repository. (2) Incremental analysis — updated report with change tracking from a baseline. (3) TM7 Analysis — parse a Microsoft Threat Modeling Tool .tm7 file, evaluate STRIDE threat generation rules from its embedded KnowledgeBase, run LLM-augmented threat analysis for deployment-specific risks, and produce an HTML threat report with gap analysis. Only activate when the user explicitly requests a threat model analysis, incremental update, TM7 file analysis, or invokes /threat-model-analyst directly.'
+description: 'Full STRIDE-A threat model analysis, incremental update, TM7 file analysis, and TM7+code comparative analysis skill. Implements four active modes: (1) Single analysis — full STRIDE-A threat model of a repository. (2) Incremental analysis — updated report with change tracking from a baseline. (3) TM7 Analysis — parse a Microsoft Threat Modeling Tool .tm7 file, evaluate STRIDE threat generation rules from its embedded KnowledgeBase, run LLM-augmented threat analysis, and produce an HTML threat report with gap analysis. (4) TM7 + Code Comparative Analysis — map TM7 elements to code components, reconcile TM7 threats vs. code findings, identify bidirectional gaps, and generate a unified comparative report with interactive dashboard.'
 ---
 
 # Threat Model Analyst
@@ -42,6 +42,17 @@ If the user provides a `.tm7` file (Microsoft Threat Modeling Tool diagram) or m
   deployment-specific threats beyond KB rules, deduplicate, and add them to the STRIDE Threat Matrix
   tables in the HTML with a `[NEW - LLM]` tag. This is NOT optional — always complete all 9 phases.
 
+### Comparative Mode (ACTIVE)
+If the user provides BOTH a `.tm7` file path AND a code repository path:
+- "Compare TM7 at {path} against code at {path}"
+- "TM7 + code analysis"
+- "Analyze threat model {file.tm7} vs repository {folder}"
+
+→ Read [comparative-orchestrator.md](./references/comparative-orchestrator.md) and follow the **7-phase comparative workflow**.
+  The comparative orchestrator combines Mode 3 (TM7 Analysis) and Mode 1 (Code Analysis), then adds
+  component mapping, threat reconciliation, and bidirectional gap analysis. Produces 11 comparison files
+  including an interactive HTML dashboard.
+
 ### Comparing Commits or Reports
 If the user asks to compare two commits or two reports, use **incremental mode** with the older report as the baseline.
 → Read [incremental-orchestrator.md](./references/incremental-orchestrator.md) and follow the **incremental workflow**.
@@ -70,6 +81,12 @@ Load the relevant file when performing each task:
 | [TMT Element Taxonomy](./references/tmt-element-taxonomy.md) | Identifying DFD elements from code | Complete TMT-compatible element type taxonomy, trust boundary detection, data flow patterns, code analysis checklist |
 | [TM7 Threat Generation](./references/tm7-threat-generation.md) | **Analyzing .tm7 files** | Complete 9-phase workflow: TM7 XML parsing, type hierarchy, filter DSL evaluation, threat generation, gap analysis, LLM-augmented analysis |
 | [TM7 Analysis Script](./references/Invoke-TM7ThreatAnalysis.ps1) | Running TM7 analysis | PowerShell script: `./references/Invoke-TM7ThreatAnalysis.ps1 -TM7Path <file> -OutputDir <dir> [-SurfaceFilter <name>]` |
+| [Comparative Orchestrator](./references/comparative-orchestrator.md) | **Mode 4 — TM7 + Code** | 7-phase workflow: Phase 1 TM7 analysis, Phase 2 code analysis, Phase 3 component mapping, Phase 4 threat reconciliation, Phase 5 gap analysis, Phase 6 report generation, Phase 7 verification (76 checks) |
+| [Comparison Assessment Skeleton](./references/skeletons/skeleton-comparison-assessment.md) | Writing `0-comparison-assessment.md` | Executive summary, risk comparison, action plan, metadata for comparative analysis |
+| [Element Mapping Skeleton](./references/skeletons/skeleton-element-mapping.md) | Writing `1-element-mapping.md` | TM7 element → code component mapping table with confidence scores and evidence |
+| [Threat Reconciliation Skeleton](./references/skeletons/skeleton-threat-reconciliation.md) | Writing `2-threat-reconciliation.md` | Per-threat status (Addressed/Mitigated/Open/NotApplicable/NotInCode/Deferred) with evidence |
+| [Gap Analysis Skeleton](./references/skeletons/skeleton-gap-analysis.md) | Writing `3-gap-analysis.md` | Bidirectional gaps: TM7-only elements, code-only components, flow mismatches, recommendations |
+| [Comparison Dashboard Skeleton](./references/skeletons/skeleton-comparison-dashboard.md) | Writing `comparison-dashboard.html` | Interactive HTML dashboard with heatmaps, status badges, evidence panels |
 
 ## When to Activate
 
@@ -93,6 +110,14 @@ Load the relevant file when performing each task:
 - Validate existing threats in a TM7 file against KnowledgeBase rules
 - Produce gap analysis showing missing/extra threats
 - Parse `.tb7` template files to catalog available threat rules
+
+**Comparative Mode (ACTIVE)** (read [comparative-orchestrator.md](./references/comparative-orchestrator.md) for workflow):
+- Compare a TM7 threat model against a code repository
+- Map TM7 elements to code components with confidence scores
+- Reconcile TM7 threats against code findings (Addressed/Mitigated/Open/etc.)
+- Identify bidirectional gaps (TM7-only elements, code-only components)
+- Generate unified comparative report with interactive HTML dashboard
+- Validate with 76 Mode 4-specific checks (sections Y-AC)
 
 **Comparing commits or reports:**
 - To compare security posture between commits, use incremental mode with the older report as baseline
