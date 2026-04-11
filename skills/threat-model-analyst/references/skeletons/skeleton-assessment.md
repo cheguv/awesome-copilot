@@ -183,6 +183,60 @@
 
 [FILL-PROSE: or "No additional notes."]
 
+### Security Review Follow-Up Questions
+
+<!-- SKELETON INSTRUCTION: Generate technology-specific follow-up questions based on what was detected during analysis. Include ONLY the blocks relevant to the detected technology stack. Do NOT copy this HTML comment into the output. -->
+
+[CONDITIONAL: Include if Kubernetes manifests, Helm charts, or container orchestration detected]
+**Kubernetes & Container Orchestration:**
+- Are pod security standards enforced via an admission controller (OPA/Gatekeeper, Kyverno, or Pod Security Admission)?
+- Is Workload Identity Federation configured with minimal audience scope and validated issuer URLs?
+- Are service account tokens short-lived and non-automounted where not needed?
+- Are `hostPath`, `hostPID`, `hostNetwork` uses justified with documented compensating controls?
+[END-CONDITIONAL]
+
+[CONDITIONAL: Include if secrets, credentials, or key management detected]
+**Credential & Secret Management:**
+- What is the secret rotation policy and failure-handling procedure?
+- Where are break-glass/emergency credentials stored (approved vault vs. local files)?
+- Are secrets synced securely from cloud to edge (if applicable)?
+- Is managed identity used everywhere possible instead of static credentials?
+[END-CONDITIONAL]
+
+[CONDITIONAL: Include if cloud IaC (ARM/Bicep/Terraform/CloudFormation) detected]
+**Cloud IAM & IaC:**
+- Are IAM role assignments least-privilege (no Owner/Contributor without documented justification)?
+- Is Just-In-Time (JIT) access used for privileged operations?
+- Are customer-managed keys (CMK) required for data at rest, or are Microsoft-managed keys acceptable?
+[END-CONDITIONAL]
+
+[CONDITIONAL: Include if LLM, ML model, or AI endpoint detected]
+**AI/LLM Security:**
+- Is PII/sensitive data filtered before sending to external LLM endpoints?
+- Are prompt injection mitigations in place for user-facing AI features?
+- Is model output validated before use in security-sensitive operations (tool calls, data access)?
+[END-CONDITIONAL]
+
+[CONDITIONAL: Include if no alerting/monitoring configs found in codebase]
+**Incident Response & Monitoring:**
+- Does each critical component have an incident detection signal (alerts, metrics, health probes)?
+- Can credentials, keys, or tokens be revoked within SLA?
+- Are incident response runbooks current for all deployment scenarios (cloud, edge, air-gapped)?
+[END-CONDITIONAL]
+
+[CONDITIONAL: Include if HTTP endpoints or web application detected]
+**Web Application Security:**
+- Are CSRF protections enforced on state-changing endpoints?
+- Is OAuth2 using PKCE for public clients?
+- Are cookie flags (HttpOnly, Secure, SameSite) configured correctly?
+- Is CORS configured with specific allowed origins (not wildcards)?
+[END-CONDITIONAL]
+
+**General (always include):**
+- Has the team classified data flowing through this system (PII, PHI, PCI, confidential)?
+- Are there deployment environments not represented in the codebase (air-gapped, edge, multi-region)?
+- When was the last security review or threat model update for this system?
+
 ---
 
 ## References Consulted
@@ -265,6 +319,7 @@
 - `---` horizontal rules between EVERY pair of `## ` sections (minimum 6)
 - `### Quick Wins` always present (with fallback note if no low-effort findings)
 - `### Needs Verification` and `### Finding Overrides` always present (even if empty with `—`)
+- `### Security Review Follow-Up Questions` always present (technology-conditional + General block)
 - References has TWO subsections with THREE-column tables (never flat 2-column)
 - ALL metadata values wrapped in backticks
 - ALL metadata fields present (Model, Analysis Started, Analysis Completed, Duration)
